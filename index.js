@@ -128,7 +128,7 @@ Rx.DOM.ready().subscribe(function () {
             */
 			var k = 4;
             var ADC_values = new Uint16Array(buffer, 0, k),     // 1st 8 bytes are 4 16-bit Ints
-                variance = new Float32Array(buffer.slice(2*k));         // Next 16 bytes are 4 32-bit Floats
+                variance = new Float32Array(buffer, 2*k, 2*k + 4*k);         // Next 16 bytes are 4 32-bit Floats
 			var pressure_reader = function(v) {
 				return (26365 * v * (5/1024.0) - 5273)/1125.0;
 			}
