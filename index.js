@@ -130,10 +130,12 @@ Rx.DOM.ready().subscribe(function () {
             var ADC_values = new Uint16Array(buffer, 0, k),     // 1st 8 bytes are 4 16-bit Ints
                 variance = new Float32Array(buffer.slice(2*k));         // Next 16 bytes are 4 32-bit Floats
 			var pressure_reader = function(v) {
-				return v;//(26365 * v * (5/1024.0) - 5273)/1125.0;
+				return (26365 * v * (5/1024.0) - 5273)/1125.0;
 			}
 			for (var x=0;x<4;x++) {
-				ADC_values[x] = pressure_reader(ADC_values[x]);
+				if (scaleit[x]) {
+					ADC_values[x] = pressure_reader(ADC_values[x]);
+				}
 			}
             HID_data = Array.from(ADC_values).concat(Array.from(variance));
             console.log(HID_data);
@@ -184,17 +186,34 @@ Rx.DOM.ready().subscribe(function () {
             max: 300
         }
     };
-    var plot0 = $.plot("#placeholder0", [], plotDefaults);
-    var plot1 = $.plot("#placeholder1", [], plotDefaults);
-    var plot2 = $.plot("#placeholder2", [], plotDefaults);
+	var plotDefaultsScaled = {
+        series: {
+            shadowSize: 0	// Drawing is faster without shadows
+        },
+        yaxis: {
+            show: true,
+            min: 0,
+            max: 50
+        },
+        xaxis: {
+            show: false,
+            min: 0,
+            max: 300
+        }
+    };
+    var plot0 = $.plot("#placeholder0", [], plotDefaultsScaled);
+    var plot1 = $.plot("#placeholder1", [], plotDefaultsScaled);
+    var plot2 = $.plot("#placeholder2", [], plotDefaultsScaled);
     var plot3 = $.plot("#placeholder3", [], plotDefaults);
 	var plots = [plot0,plot1,plot2,plot3];
+	var scaleit = [0,1,1,1];
 
     function update_plot(d) {
 		var colors = ['#ff0000', '#00ff00', '#0000ff', '#ff7700'];
+		var order = [3, 2, 1, 0];
 		for (var i = 0; i < 4; i++) {
-			if (d.length > i) {
-				plots[i].setData([{data:d[i].data, color:colors[i]}]);
+			if (d.length > order[i]) {
+				plots[i].setData([{data:d[order[i]].data, color:colors[order[i]]}]);
 			}
 		}
         //plot.setData(data);
