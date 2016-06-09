@@ -126,11 +126,11 @@ Rx.DOM.ready().subscribe(function () {
                 sensor_values.push(variance.getFloat32(i * 4, true));
             }
             */
-			var k = 3;
+			var k = 4;
             var ADC_values = new Uint16Array(buffer, 0, k),     // 1st 8 bytes are 4 16-bit Ints
                 variance = new Float32Array(buffer.slice(2*k));         // Next 16 bytes are 4 32-bit Floats
 			var pressure_reader = function(v) {
-				return (26365 * v * (5/1024.0) - 5273)/1125.0;
+				return v;//(26365 * v * (5/1024.0) - 5273)/1125.0;
 			}
 			for (var x=0;x<4;x++) {
 				ADC_values[x] = pressure_reader(ADC_values[x]);
@@ -169,26 +169,39 @@ Rx.DOM.ready().subscribe(function () {
         }
     });
 
-    var plot = $.plot("#placeholder", [], {
+	var plotDefaults = {
         series: {
             shadowSize: 0	// Drawing is faster without shadows
         },
         yaxis: {
             show: true,
             min: 0,
-            max: 100 //1023
+            max: 1023 //1023
         },
         xaxis: {
             show: false,
             min: 0,
             max: 300
         }
-    });
+    };
+    var plot0 = $.plot("#placeholder0", [], plotDefaults);
+    var plot1 = $.plot("#placeholder1", [], plotDefaults);
+    var plot2 = $.plot("#placeholder2", [], plotDefaults);
+    var plot3 = $.plot("#placeholder3", [], plotDefaults);
+	var plots = [plot0,plot1,plot2,plot3];
 
-    function update_plot(data) {
-        plot.setData(data);
+    function update_plot(d) {
+		var colors = ['#ff0000', '#00ff00', '#0000ff', '#ff7700'];
+		for (var i = 0; i < 4; i++) {
+			if (d.length > i) {
+				plots[i].setData([{data:d[i].data, color:colors[i]}]);
+			}
+		}
+        //plot.setData(data);
         // Since the axes don't change, we don't need to call plot.setupGrid()
-        plot.draw();
+		for (var i = 0; i < 4; i++) {
+	        plots[i].draw();
+		}
     }
 
     function updater(data_function) {
